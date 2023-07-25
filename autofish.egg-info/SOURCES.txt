@@ -1,0 +1,7 @@
+README.md
+setup.py
+autofish.egg-info/PKG-INFO
+autofish.egg-info/SOURCES.txt
+autofish.egg-info/dependency_links.txt
+autofish.egg-info/not-zip-safe
+autofish.egg-info/top_level.txt
