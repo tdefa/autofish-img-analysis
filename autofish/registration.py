@@ -18,21 +18,6 @@ import SimpleITK as sitk
 
 from scipy.ndimage import gaussian_filter
 
-
-def compute_the_translation_fourier_shift(static_image, moving_image, # does not work
-                            upsample_factor=100,
-                            return_translated_image = False):
-
-    shift, error, diffphase = phase_cross_correlation(static_image, moving_image,  upsample_factor=upsample_factor)
-    # moving_image + shift = static_image
-
-    if return_translated_image:
-        offset_image = fourier_shift(np.fft.fftn(moving_image), shift)
-        offset_image = np.fft.ifftn(offset_image).real
-        return shift, error, diffphase, offset_image
-    return shift, error, diffphase
-
-
 def compute_euler_transform(fixed_image,
                             moving_image,  # works ok
                             ndim = 2,
@@ -111,13 +96,6 @@ def compute_euler_transform(fixed_image,
 
 
 from skimage.transform import AffineTransform, warp
-def shift(image, translation):
-    assert image.ndim == 2
-    transform = AffineTransform(translation=translation)
-    shifted = warp(image, transform, mode='constant', preserve_range=True)
-
-    shifted = shifted.astype(image.dtype)
-    return shifted
 
 
 
@@ -189,6 +167,7 @@ def folder_translation(folder_of_rounds = "/media/tom/T7/Stitch/acquisition/",  
                                                                                           'x_translation': x_translation,
                                                                                             'y_translation': y_translation}
     return dico_translation
+
 
 
 
@@ -346,6 +325,15 @@ def spots_assignement(dict_spots_registered_df,
 ###################################
 ## plotting function to check registration
 ####################################
+
+def shift(image, translation):
+    assert image.ndim == 2
+    transform = AffineTransform(translation=translation)
+    shifted = warp(image, transform, mode='constant', preserve_range=True)
+
+    shifted = shifted.astype(image.dtype)
+    return shifted
+
 
 def plot_registrered_image(
 
