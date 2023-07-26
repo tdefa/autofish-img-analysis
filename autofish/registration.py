@@ -21,8 +21,16 @@ from scipy.ndimage import gaussian_filter
 def compute_euler_transform(fixed_image,
                             moving_image,  # works ok
                             ndim = 2,
-                            numberOfHistogramBins=100,
-                            ):
+                            numberOfHistogramBins=500,
+                            sampling_percentage=0.05,
+                            max_rotation_accepted = 0.02,
+                            ########## ITK parameters, leave as default unless not converging  ##########
+                            learningRate=1,
+                            numberOfIterations=100,
+                            convergenceMinimumValue=1e-6,
+                            convergenceWindowSize=10,
+                            shrinkFactors = [4 ,2 ,1],
+                            smoothingSigmas=[2 ,1 ,0],):
 
     """
     :param fixed_image: image to register to
@@ -53,24 +61,24 @@ def compute_euler_transform(fixed_image,
     registration_method = sitk.ImageRegistrationMethod()
 
     # Similarity metric settings.
-    registration_method.SetMetricAsMattesMutualInformation(numberOfHistogramBins=500)
+    registration_method.SetMetricAsMattesMutualInformation(numberOfHistogramBins=numberOfHistogramBins)
     registration_method.SetMetricSamplingStrategy(registration_method.RANDOM)
-    registration_method.SetMetricSamplingPercentage(0.05)
+    registration_method.SetMetricSamplingPercentage(sampling_percentage)
 
     registration_method.SetInterpolator(sitk.sitkLinear)
 
     # Optimizer settings.
     registration_method.SetOptimizerAsGradientDescent(
-    learningRate=1,
-    numberOfIterations=100,
-    convergenceMinimumValue=1e-6,
-    convergenceWindowSize=10,
+    learningRate=learningRate,
+    numberOfIterations=numberOfIterations,
+    convergenceMinimumValue=convergenceMinimumValue,
+    convergenceWindowSize=convergenceWindowSize,
     )
     registration_method.SetOptimizerScalesFromPhysicalShift()
 
     # Setup for the multi-resolution framework.
-    registration_method.SetShrinkFactorsPerLevel(shrinkFactors = [4 ,2 ,1])
-    registration_method.SetSmoothingSigmasPerLevel(smoothingSigmas=[2 ,1 ,0])
+    registration_method.SetShrinkFactorsPerLevel(shrinkFactors = shrinkFactors)
+    registration_method.SetSmoothingSigmasPerLevel(smoothingSigmas=smoothingSigmas)
     registration_method.SmoothingSigmasAreSpecifiedInPhysicalUnitsOn()
 
     # Don't optimize in-place, we would possibly like to run this cell multiple times.
@@ -89,7 +97,7 @@ def compute_euler_transform(fixed_image,
         thetha = final_transform.GetParameters()[0]
         x_translation = final_transform.GetParameters()[1] ## itk do not uxe python convention
         y_translation = final_transform.GetParameters()[2]
-        assert thetha < 0.17, "angle is too big more than one degree"
+        assert thetha < max_rotation_accepted,  f"the image is rotated more than the max_rotation_accepted :  {max_rotation_accepted} radians"
         return final_metric_value, thetha, x_translation, y_translation
     elif ndim == 3:
         raise NotImplementedError("3d registration not implemented yet")

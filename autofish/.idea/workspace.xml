@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="7d61b850-183f-4767-9d6a-ce618825164d" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../autofish.egg-info/PKG-INFO" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../autofish.egg-info/SOURCES.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../autofish.egg-info/dependency_links.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../autofish.egg-info/not-zip-safe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../autofish.egg-info/top_level.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/stich_seg_detect.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/registration.py" beforeDir="false" afterPath="$PROJECT_DIR$/registration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/post_processing_anndata.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/post_processing_anndata.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../autofish_pckg.egg-info/PKG-INFO" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../autofish_pckg.egg-info/SOURCES.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../autofish_pckg.egg-info/dependency_links.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../autofish_pckg.egg-info/not-zip-safe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../autofish_pckg.egg-info/top_level.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tutorial/.ipynb_checkpoints/5-spots_registration_work_in_progress-checkpoint.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tutorial/2-segmentation.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/../tutorial/2-segmentation.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tutorial/3-registration_parameter.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/../tutorial/3-registration_parameter.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tutorial/4-spots-detection.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/../tutorial/4-spots-detection.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tutorial/5-spots_registration_work_in_progress.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tutorial/8 - add assignement_to_RNA (optional) .ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/../tutorial/8 - add assignement_to_RNA (optional) .ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tutorial/9-final anndata generation.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/../tutorial/9-final anndata generation.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tutorial/X-final anndata generation.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/../tutorial/X-final anndata generation.ipynb" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2T75BvRkyDVR0TDpxyYjKuW7dTw" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "/home/tom/Bureau/phd/autofish_pckg/autofish",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="7d61b850-183f-4767-9d6a-ce618825164d" name="Changes" comment="" />
+      <created>1690381146635</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1690381146635</updated>
+      <workItem from="1690381147748" duration="25000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
