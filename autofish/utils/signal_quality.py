@@ -17,7 +17,7 @@ from bigfish.detection.utils import get_object_radius_pixel, get_spot_volume, ge
 import bigfish.stack as stack
 ############### redfine compute_snr_spots #################
 
-def compute_snr_spots(image, spots, voxel_size, spot_radius, return_list = False): ## twi
+def compute_snr_spots(image, spots, voxel_size, spot_radius, return_list = False): ## founction custom from bigfish
     """Compute signal-to-noise ratio (SNR) based on spot coordinates.
 
     .. math::
@@ -211,8 +211,6 @@ def mean_cos_tetha(gz, gy, gx, z, yc, xc, order = 3):
 
 
     """
-    todo add checking
-    todo extend to 3D checking
     Args:
         gy (): gz, gy, gx = np.gradient(rna_gaus)
         gx ():
@@ -301,8 +299,12 @@ def compute_quality_all_rounds(
                 continue
             print(path_rna_img.name)
 
+            pos = "pos" + path_rna_img.name.split("pos")[1].split("_")[0]
             rna_img = tifffile.imread(path_rna_img)
-            spots = dict_spots[path_round.name][path_rna_img.name]
+            if pos in dict_spots[path_round.name].keys():
+                spots = dict_spots[path_round.name][pos]
+            else:
+                spots = dict_spots[path_round.name][path_rna_img.name]
 
             intensity_list = compute_intensity_list(spots, rna_img,)
             if return_list:
@@ -325,7 +327,7 @@ def compute_quality_all_rounds(
                                                                          )
             else:
                 symmetry_coef_list = None
-            dico_signal_quality[path_round.name][path_rna_img.name] = {"intensity": intensity_list,
+            dico_signal_quality[path_round.name][pos] = {"intensity": intensity_list,
                                                                         "snr": snr_spots,
                                                                         "symmetry_coef": symmetry_coef_list,
                                                                        "background": background_spots,
@@ -353,23 +355,16 @@ def plot_spots_folder(dico_spots,
 
     folder_save = Path(folder_save)
     folder_save.mkdir(exist_ok=True, parents=True)
-
-
-
     for path_round in tqdm(list(Path(round_folder_path).glob(f"{round_name_regex}"))[4:] + list(Path(round_folder_path).glob(f"{round_name_regex}"))):
         print()
         print(path_round.name)
         for path_rna_img in tqdm(list(path_round.glob(f"{channel_name_regex}{file_extension}*"))):
             print(path_rna_img.name)
-
             if not re.match(image_name_regex, path_rna_img.name) :   #image_name_regex not in path_rna_img.name:
                 continue
             print(path_rna_img.name)
-
             rna_img = tifffile.imread(path_rna_img)
             spots = dico_spots[path_round.name][path_rna_img.name]
-
-
             fig, ax = plt.subplots(nrows=1, ncols=2, figsize=figsize)
             rna_img = np.amax(rna_img, axis=0)
             pa_ch1, pb_ch1 = np.percentile(rna_img, (1, 99))

@@ -1,3 +1,5 @@
+
+
 STITCHING_MACRO = """
 #@ String type
 #@ String order

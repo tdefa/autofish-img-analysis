@@ -44,14 +44,11 @@ def remove_double_detection(input_array,
             threshold = 0.3,
             scale_z_xy = np.array([0.300, 0.103, 0.103])):
     """
-
     Args:
         input_list (np.array):
         threshold (float): min distance between point in um
         scale_z_xy (np.array):voxel scale in um
-
     Returns: list of point without double detection
-
     """
     unique_tuple = [tuple(s) for s in input_array]
     unique_tuple = list(set((unique_tuple)))
@@ -241,7 +238,7 @@ def detection_without_segmentation(
 
 #%%
 
-def detection_spots_all_folder(
+def folder_detection(
                      folder_of_rounds = "/media/tom/T7/Stitch/acquisition/",
                      round_name_regex = "r",
                      image_name_regex = "opool1_1_MMStack_3",
@@ -395,136 +392,14 @@ def detection_spots_all_folder(
 
                 dico_spots[path_round.name][path_rna_img.name] = all_spots
                 #np.save("/media/tom/T7/2023-09-06_LUSTRA-14rounds/image_per_pos/try.npy", dico_spots)
-                dico_threshold[path_round.name][path_rna_img.name] = threshold
+                pos = "pos" + path_rna_img.name.split('pos')[1].split('_')[0]
+                dico_threshold[path_round.name][pos] = threshold
             except FileNotFoundError as e:
                 print(e)
                 print(f"no image found for {path_rna_img.name}")
                 continue
 
     return dico_spots, dico_threshold
-
-
-
-
-#%%
-
-
-
-
-
-if __name__ == "__main__":
-
-
-    round_folder_path  = "/home/tom/Bureau/phd/Batrin/Images_pour_FISH/Expérience2/round_folder/"
-
-    dico_spots = detection_folder(
-        round_folder_path=round_folder_path,
-        round_name_regex="ch",
-        image_name_regex="ti",
-        channel_name_regex=".",
-        min_distance=(3, 3),
-        sigma=1,
-        fixed_round_name=None,
-        path_output_segmentaton=None,
-        scale_xy=None,
-        scale_z=None,
-        ### detection parameters with segmentation
-        dico_translation=None,
-        diam_um=None,
-        local_detection=None,
-        min_cos_tetha=None,
-        order=None,
-        test_mode=None,
-        threshold_merge_limit=None)
-
-
-    #### dico spot to csv
-
-    np.save(round_folder_path+"dico_spots.npy", dico_spots)
-    Path(round_folder_path+"detection_csv/").mkdir(parents=True, exist_ok=True)
-    for round_name in dico_spots.keys():
-        for image_name in dico_spots[round_name].keys():
-            df = pd.DataFrame(dico_spots[round_name][image_name])
-            df = df.rename(columns={0: "x", 1: "y"})
-            df.to_csv(f"{round_folder_path}detection_csv/{image_name}.csv",
-                      index=False)
-
-
-
-################# try mask log
-
-    dico_spot_artefact = np.load('/media/tom/T7/2023-09-06_LUSTRA-14rounds/image_per_pos/14juin_dico_spot_artefact.npy', allow_pickle=True).item()
-
-
-    array_spots_artefatc_r1_pose =dico_spot_artefact['r5']['pos6']
-
-    ## generate 2D mask log from artefact.
-    path_to_image = "/media/tom/T7/2023-09-06_LUSTRA-14rounds/image_per_pos/r5/r5_pos6_ch0.tif"
-    ###################
-
-    image = tifffile.imread(path_to_image)
-    mask_log_2D = np.zeros(image[0].shape)
-
-    mask_coord = array_spots_artefatc_r1_pose[:, 1:].astype(int)
-
-    valid_coord  = np.logical_and(np.logical_and(mask_coord[:, 0]  < 2048, mask_coord[:, 1]  < 2048), np.logical_and(mask_coord[:, 0]  > 0, mask_coord[:, 1]  > 0))
-    mask_coord = mask_coord[valid_coord, :]
-    mask_log_2D[mask_coord[:, 0], mask_coord[:, 1]] = 1
-
-    from scipy import ndimage as ndi
-
-    mask_log_2D = ndi.maximum_filter(mask_log_2D, 30)
-
-    np.save("/media/tom/T7/2023-09-06_LUSTRA-14rounds/image_per_pos/mask_log_2D.npy", mask_log_2D)
-
-    ### DETECTION
-    ###################
-    mask_log_2D = np.load("/media/tom/T7/2023-09-06_LUSTRA-14rounds/image_per_pos/mask_log_2D.npy")
-
-    image = tifffile.imread(path_to_image)
-    import bigfish.detection as detection
-    import bigfish.stack as stack
-    sigma = 1.3
-    rna_log = stack.log_filter(image, sigma)
-
-    #mask_log_2D = np.load("/media/tom/T7/2023-09-06_LUSTRA-14rounds/image_per_pos/mask_log_2D.npy")
-
-    mask = detection.local_maximum_detection(rna_log, min_distance=[3,3,3])
-    threshold = detection.automated_threshold_setting(rna_log, mask)
-    spots, _ = detection.spots_thresholding(rna_log, mask, threshold)
-    print(len(spots), threshold)
-
-
-
-    rna_log2 = rna_log.copy()
-    rna_log2[:,mask_log_2D == 1] = 0
-    mask_2 = detection.local_maximum_detection(rna_log2, min_distance=[3, 3, 3])
-    threshold2 = detection.automated_threshold_setting(rna_log2, mask_2)
-    spots2, _ = detection.spots_thresholding(rna_log2, mask_2, threshold2)
-    print(len(spots2), threshold2)
-
-    import napari
-
-    viewer = napari.viewer.Viewer()
-
-    viewer.add_image(image, name='rna')
-    # viewer.add_image(img_dapi, name='rna')
-    viewer.add_image(rna_log2, name='rna_log2')
-    viewer.add_image(rna_log, name='rna_log')
-
-    viewer.add_points(spots, name='spots',
-                      face_color='red', edge_color='red', size=5)
-
-
-
-
-    viewer.add_points(spots2, name='spots2',
-                      face_color='blue', edge_color='blue', size=5)
-
-
-
-
-
 
 
 
