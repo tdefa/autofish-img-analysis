@@ -1,14 +1,12 @@
-
-
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
-name = "example_package_YOUR_USERNAME_HERE"
+name = "autoimg"
 version = "0.0.1"
 authors = [
-  { name="Example Author", email="author@example.com" },
+  { name="thomas defard", email="thomas.defard@minesparis.fr" },
 ]
 description = "A small example package"
 readme = "README.md"
@@ -20,5 +18,5 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/pypa/sampleproject"
-"Bug Tracker" = "https://github.com/pypa/sampleproject/issues"
+"Homepage" = "https://github.com/tdefa/autofish-img-analysis"
+
