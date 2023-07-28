@@ -1,9 +1,8 @@
 
 
-import numpy as np
 import cellpose
+import numpy as np
 from tqdm import tqdm
-
 
 
 def stitch3D_z(masks, stitch_threshold=0.25):
@@ -90,12 +89,13 @@ def compute_dico_centroid(mask_nuclei, dico_simu = None, offset = np.array([0,0,
 
 
 
+from pathlib import Path
+
+import numpy as np
+import tifffile
 ########## generate artefact mask ##########
 from scipy import ndimage
-import tifffile
-import numpy as np
 from tqdm import tqdm
-from pathlib import Path
 
 
 def get_artefact_dico_percent(round = "r1",

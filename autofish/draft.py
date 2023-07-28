@@ -1,9 +1,7 @@
 
 
-import pandas
 import numpy as np
-
-
+import pandas
 
 ### create a dataframe with the information of the spots
 
@@ -86,9 +84,10 @@ np.save("/media/tom/Transcend/lustr2023/images/23mai_dico_translation.npy",
 ##### fuse dico loacal detection
 
 
+from pathlib import Path
+
 import numpy as np
 import pandas
-from pathlib import Path
 
 path_folder_dico = Path("/media/tom/Transcend/lustr2023/images/folder_detection_each_round")
 
@@ -113,6 +112,7 @@ nbrs = NearestNeighbors(n_neighbors=2, algorithm='ball_tree').fit(points_to_keep
 distances, indices = nbrs.kneighbors(points_to_keep)
 
 import itertools
+
 threshold = 0.3
 scale_z_xy = np.array([0.3, 0.1, 0.1])
 input_array = X
@@ -143,8 +143,8 @@ for img_path in list_img:
 ###############
 
 import napari
-import tifffile
 import numpy as np
+import tifffile
 from registration import shift
 
 image1 = tifffile.imread("/media/tom/T7/2023-09-06_LUSTRA-14rounds/image_per_pos/r1/r1_pos9_ch0.tif")
@@ -170,13 +170,11 @@ viewer.add_image(shifted_image4, name="image_2_registered")
 viewer.add_image(matched-reference, name="image_2_registered")
 ########### try histogram matching
 
-import matplotlib.pyplot as plt
-
-from skimage import data
-from skimage import exposure
-from skimage.exposure import match_histograms
 import bigfish.detection as detection
 import bigfish.stack as stack
+import matplotlib.pyplot as plt
+from skimage import data, exposure
+from skimage.exposure import match_histograms
 
 reference =  stack.log_filter(shifted_image4, 1.35)# shifted_image4
 image =  stack.log_filter(image1, 1.35)# image1
@@ -253,11 +251,12 @@ channel_nuc = 'ch3'
 channel_bead = 'ch2'
 channel_rna = 'ch0'
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
-from skimage import data
-from pathlib import Path
 import tifffile
+from skimage import data
 
 path_acquisition = "/media/tom/T7/2022-02-24_opool-1/Stitch/acquisition/"
 path_to_save = "/media/tom/T7/2022-02-24_opool-1/Stitch/analyse_paper/"
@@ -294,12 +293,12 @@ for path_round in Path(path_acquisition).glob("r*"):
 
 
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
-from skimage import data
-from pathlib import Path
 import tifffile
-
+from skimage import data
 
 dapi = tifffile.imread("/media/tom/T7/2022-02-24_opool-1/Stitch/analyse_paper/3jully_final_dapi_mip.tif")
 tifffile.imsave("/media/tom/T7/2022-02-24_opool-1/Stitch/analyse_paper/3jully_final_dapi_mip.tif", dapi[ :5833, :5819])
@@ -322,7 +321,6 @@ np.save("/media/tom/T7/2022-02-24_opool-1/Stitch/analyse_paper/3jully_final_dapi
 
 
 import napari
-
 
 viewer = napari.view_image(dapi[ :5833, :5819], name="dapi")
 dapi = tifffile.imread("/media/tom/T7/2022-02-24_opool-1/Stitch/analyse_paper/3jully_final_masks_mip.tif")

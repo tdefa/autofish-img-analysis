@@ -3,13 +3,13 @@
 # is stored with the LED off. This image has to be removed.
 
 
+import re
 # %% Imports
 from pathlib import Path
-from skimage.io import imread, imsave
-import numpy as np
-import re
-from tqdm import tqdm
 
+import numpy as np
+from skimage.io import imread, imsave
+from tqdm import tqdm
 
 # %%
 

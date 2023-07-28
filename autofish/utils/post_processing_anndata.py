@@ -2,22 +2,20 @@
 
 
 
-import pandas as pd
-import numpy as np
-import anndata as ad
-from tqdm import tqdm
-import tifffile
 from pathlib import Path
+
+import anndata
+import anndata as ad
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from shapely import geometry, wkt
-from shapely.geometry import Polygon
-from tqdm.auto import tqdm
-import anndata
 import rasterio
 import rasterio.features
-from shapely import to_geojson
+import tifffile
+from shapely import geometry, to_geojson, wkt
+from shapely.geometry import Polygon
+from tqdm import tqdm
+from tqdm.auto import tqdm
 
 
 def mask3D_to_polygone(seg_img_path,
@@ -138,8 +136,8 @@ if __name__ == '__main__':
                 dico_cell_contours[cell_id] += coord
     # Convert to shapely Polygons
     import skimage
-    from skimage.measure import regionprops_table
     from pandas import DataFrame
+    from skimage.measure import regionprops_table
 
     polygons = [Polygon(np.array(dico_cell_contours[k]).astype("uint16")) for k in dico_cell_contours]
     shapes = gpd.GeoDataFrame(geometry=gpd.GeoSeries(polygons))  # Cast to GeoDataFrame

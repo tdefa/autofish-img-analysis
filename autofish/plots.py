@@ -1,9 +1,8 @@
 
 
-import tifffile
-import numpy as np
-
 import napari
+import numpy as np
+import tifffile
 
 if __name__ == "__main__":
 

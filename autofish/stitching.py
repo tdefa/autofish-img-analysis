@@ -1,15 +1,14 @@
 
 
 #%%
-from tqdm import tqdm
-
 import ast
+from pathlib import Path
 
 import numpy as np
-import tifffile
 import pandas as pd
-from pathlib import Path
-from spots_detection import remove_double_detection
+import tifffile
+from .spots_detection import remove_double_detection
+from tqdm import tqdm
 
 if False: # change to True if you want to use imageJ
     None
@@ -659,7 +658,8 @@ if __name__ == "__main__":
     image_name = "r1_pos{i}_ch0.tif"
     image_path = "/media/tom/Transcend/autofish_test_stiching/r1"
     output_path = "/media/tom/Transcend/autofish_test_stiching/r1"
-    import imagej, scyjava
+    import imagej
+    import scyjava
     scyjava.config.add_option('-Xmx40g')
     ij = imagej.init('sc.fiji:fiji') ## initialize it only once
 

@@ -3,18 +3,19 @@
 #%%
 
 
-import numpy as np
-
-from scipy import ndimage
-
-from pathlib import Path
-import tifffile
-from tqdm import tqdm
 import re
-from matplotlib import pyplot as plt
-from skimage.exposure import rescale_intensity
-from bigfish.detection.utils import get_object_radius_pixel, get_spot_volume, get_spot_surface
+from pathlib import Path
+
 import bigfish.stack as stack
+import numpy as np
+import tifffile
+from bigfish.detection.utils import (get_object_radius_pixel, get_spot_surface,
+                                     get_spot_volume)
+from matplotlib import pyplot as plt
+from scipy import ndimage
+from skimage.exposure import rescale_intensity
+from tqdm import tqdm
+
 ############### redfine compute_snr_spots #################
 
 def compute_snr_spots(image, spots, voxel_size, spot_radius, return_list = False): ## founction custom from bigfish

@@ -6,13 +6,14 @@
 #%%
 
 import argparse
-import tifffile
-import numpy as np
 #from spots_detection import detection_folder_with_segmentation  # , detection_folder_without_segmentation
 # from stiching import stich_with_image_J, parse_txt_file
 import datetime
 from pathlib import Path
+
+import numpy as np
 import pandas as pd
+import tifffile
 
 # Press the green button in the gutter to run the script.
 
@@ -198,8 +199,9 @@ if __name__ == '__main__':
         )
 
     if args.segmentation == 1:
-        from segmentation import folder_segment_nuclei
         from pathlib import Path
+
+        from segmentation import folder_segment_nuclei
         print("segmentation")
         ### set the cellpose parameters
         dico_param = {}
@@ -388,9 +390,10 @@ if __name__ == '__main__':
         ###################################
         ### compute the translation between the images
         ###################################
-        from utils.macro import STITCHING_MACRO
+        import imagej
+        import scyjava
         import utils.macro
-        import imagej, scyjava
+        from utils.macro import STITCHING_MACRO
 
         scyjava.config.add_option('-Xmx40g')
         if "ij" not in vars():
@@ -401,6 +404,7 @@ if __name__ == '__main__':
                         "img1": ['pos6', "pos7", "pos8"]}
 
         import importlib
+
         import stitching
 
         importlib.reload(stitching)

@@ -10,19 +10,16 @@
 
 
 
-import argparse
-from os import listdir
-from os.path import isfile, join
+from pathlib import Path
 
 import numpy as np
 import tifffile
 from cellpose import models
-from matplotlib import pyplot as plt
 from tqdm import tqdm
-from utils.segmentation_processing import stitch3D_z, erase_solitary, erase_small_nuclei
 
-from pathlib import Path
-from tqdm import tqdm
+from .utils.segmentation_processing import (erase_small_nuclei, erase_solitary,
+                                            stitch3D_z)
+
 
 def folder_segment_nuclei(path_to_staining,
                           regex_staining,

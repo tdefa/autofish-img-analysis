@@ -1,13 +1,11 @@
 
 
 
-import tifffile
-import numpy as np
 from pathlib import Path
+
+import numpy as np
+import tifffile
 from tqdm import tqdm
-
-
-
 
 
 def tilling_input(image,

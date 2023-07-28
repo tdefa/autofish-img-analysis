@@ -1,23 +1,11 @@
 
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import tifffile
-from pathlib import Path
 from tqdm import tqdm
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 if __name__ ==  "__main__":
 

@@ -1,22 +1,16 @@
 
 # %%
-import numpy as np
-from skimage.registration import phase_cross_correlation
-from scipy.ndimage import fourier_shift
-import tifffile
-from tqdm import tqdm
-import scipy
 from pathlib import Path
 
 import numpy as np
-
 import pandas as pd
-import tifffile
-from spots_detection import remove_double_detection
-
 import SimpleITK as sitk
-
+import tifffile
 from scipy.ndimage import gaussian_filter
+from tqdm import tqdm
+
+from .spots_detection import remove_double_detection
+
 
 def compute_euler_transform(fixed_image,
                             moving_image,  # works ok
@@ -104,7 +98,6 @@ def compute_euler_transform(fixed_image,
 
 
 from skimage.transform import AffineTransform, warp
-
 
 
 def folder_translation(folder_of_rounds = "/media/tom/T7/Stitch/acquisition/",  # works ok

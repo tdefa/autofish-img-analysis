@@ -1,30 +1,19 @@
 
 
 #%%
-import time
-from os import listdir
-from os.path import isfile, join
+import itertools
+import re
+from pathlib import Path
+
 import bigfish.detection as detection
 import bigfish.stack as stack
 import numpy as np
 import tifffile
-from numpy import argmax, nanmax, unravel_index
-from scipy.spatial import ConvexHull, Delaunay
-from scipy.spatial.distance import pdist, squareform
-from scipy import ndimage
 from matplotlib import pyplot as plt
+from scipy import ndimage
 from skimage.exposure import rescale_intensity
 from tqdm import tqdm
-from sklearn.cluster import OPTICS, cluster_optics_dbscan
-import math
-from pathlib import Path
-import re
-import itertools
-
-import pandas as pd
-from utils.signal_quality import mean_cos_tetha
-
-
+from .utils.signal_quality import mean_cos_tetha
 
 
 def remove_artifact(filtered_fish, spots, order = 3, min_cos_tetha = 0.75):
