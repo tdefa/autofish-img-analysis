@@ -9,16 +9,15 @@ The package is specially designed to work with the autoFISH project https://gith
 
 ### Installation
 
-Fisrt create a conda environnement with the required package:
+Fisrt create a conda environnement with the required packages:
 
 ```bash
 conda env create --file autofish_analysis.yml 
 ```
-to create an environnement with  the exhaustive list of package to install
 
 
-The package is not yet on PyPI,
-Clone this repository on use: ```bash
+The package is not yet on PyPI.
+Clone this repository and use: ```bash
 pip install -e . ```
 
 
