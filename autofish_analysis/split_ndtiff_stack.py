@@ -58,11 +58,8 @@ def NDTiffStack_to_tiff(
     # %% Loop over all subfolders
     list_exceptions = []
     for path_images in tqdm(path_list):
-
         try:
-
             print(f'>>>> SCANNING FOLDER FOR IMAGES: {path_images}')
-
             # Get number of channels
             n_c_key = [n_c_key for n_c_key in n_c_keys if (n_c_key in str(path_images))]
             if len(n_c_key) == 0:
@@ -73,11 +70,9 @@ def NDTiffStack_to_tiff(
                 print(f'Will use pre-defined channel number {n_c} for round {n_c_key[0]}')
             else:
                 raise Exception(f'ERROR: multiple matches for n_c found, verify strings: {n_c_key}')
-
             # >>> Scan folder to get all files
             file_list = []
             for f_image in path_images.glob('*.tif'):
-
                 # >> Only NDTIFF
                 if ('NDTiffStack' in str(f_image.stem)):
                     file_list.append(str(f_image))
@@ -87,7 +82,6 @@ def NDTiffStack_to_tiff(
             file_list = sorted(file_list)
             n_files = len(file_list)
             print(f'   Found images: {file_list}')
-
             # >> Create path to save images
             round_name = path_images.name
             for old, new in string_replacements_path:

@@ -201,7 +201,7 @@ if __name__ == '__main__':
     if args.segmentation == 1:
         from pathlib import Path
 
-        from segmentation import folder_segment_nuclei
+        from segmentation import folder_segmentation
         print("segmentation")
         ### set the cellpose parameters
         dico_param = {}
@@ -216,13 +216,13 @@ if __name__ == '__main__':
         dico_param["erase_small_nuclei"] = 300
         dico_param["model_type"] = "cyto"
         dico_param["gpu"] = True
-        folder_segment_nuclei(path_to_staining=args.path_to_round_for_segmentation,
-                              regex_dapi=args.regex_dapi,
-                              path_to_mask=args.path_to_mask,
-                              dico_param=dico_param,
-                              output_dtype=np.int32
+        folder_segmentation(path_to_staining=args.path_to_round_for_segmentation,
+                            regex_dapi=args.regex_dapi,
+                            path_to_mask=args.path_to_mask,
+                            dico_param=dico_param,
+                            output_dtype=np.int32
 
-                              )
+                            )
 
     ########
     # register each channel to the dapi round channel

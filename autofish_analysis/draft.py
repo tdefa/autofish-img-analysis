@@ -327,3 +327,75 @@ dapi = tifffile.imread("/media/tom/T7/2022-02-24_opool-1/Stitch/analyse_paper/3j
 
 
 viewer = napari.view_image(dapi[ :5833, :5819], name="dapi")
+
+
+dict_spots_registered_df = np.load("/media/tom/Transcend/autofish_test_stiching/dict_spots_registered_df_r1_with_cell.npy", allow_pickle=True).item()
+
+
+
+dict_stitch_img = np.load("/media/tom/Transcend/autofish_test_stiching/dict_stitch_img.npy", allow_pickle=True).item()
+
+
+dico_bc_gene={
+        'r1': "gene1",
+        'r3': "gene2",
+        }
+
+## image dimention parameter
+image_shape=[38, 2048, 2048]
+nb_tiles_x=3
+nb_tiles_y=1
+
+#########
+
+dict_spots_registered_df = np.load("/media/tom/Transcend/autofish_test_stiching/dict_spots_registered_df_r1_with_cell.npy",
+                                   allow_pickle=True).item()
+
+dict_stitch_img = np.load("/media/tom/Transcend/autofish_test_stiching/dict_stitch_img.npy",
+                            allow_pickle=True).item()
+
+dict_bc_gene={
+        'r1': "gene1",
+        'r3': "gene2",
+        }
+
+## image dimention parameter
+image_shape=[38, 2048, 2048]
+nb_tiles_x=3
+nb_tiles_y=1
+
+df_matching_new_cell_label = np.load("/media/tom/Transcend/autofish_test_stiching/df_matching_new_cell_label.npy",
+                                        allow_pickle=True).item()
+
+
+###############""
+
+
+
+
+
+older_of_rounds = "/media/tom/Transcend/autofish_test_stiching/"
+
+
+
+dict_round_gene={
+        'r1': "gene1",
+        'r3': "gene2",
+        }
+
+dico_spots_registered_df = np.load(Path(folder_of_rounds) /   "dico_spots_registered_stitch_df.npy",
+                                   allow_pickle=True).item()
+cell_column_name = "cell_assignment"
+dico_spots_registered_df['img0']
+
+
+
+
+
+
+
+
+
+
+
+

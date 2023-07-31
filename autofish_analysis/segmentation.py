@@ -14,20 +14,19 @@ from pathlib import Path
 
 import numpy as np
 import tifffile
-from cellpose import models
 from tqdm import tqdm
 
 from .utils.segmentation_processing import (erase_small_nuclei, erase_solitary,
                                             stitch3D_z)
 
 
-def folder_segment_nuclei(path_to_staining,
-                          regex_staining,
-                          path_to_mask,
-                          dico_param,
-                          output_dtype=np.int32
-                          ):
-
+def folder_segmentation(path_to_staining,
+                        regex_staining,
+                        path_to_mask,
+                        dico_param,
+                        output_dtype=np.int32
+                        ):
+    from cellpose import models ## speed import
 
     """
     segment nuclei or cytoplasms  and save them in th path_to_mask_dapi folder
@@ -47,9 +46,9 @@ def folder_segment_nuclei(path_to_staining,
         path_to_mask += "/"
     if path_to_staining[-1] != "/":
         path_to_staining += "/"
-    print(list(Path(path_to_staining).glob(f"*{regex_staining}*")))
+    print(list(Path(path_to_staining).glob(f"{regex_staining}")))
     print(f'dico_param{dico_param}')
-    for path_dapi in tqdm(list(Path(path_to_staining).glob(f"*{regex_staining}*"))):
+    for path_dapi in tqdm(list(Path(path_to_staining).glob(f"{regex_staining}"))):
         path_dapi = str(path_dapi)
         print(path_dapi)
         img = tifffile.imread(path_dapi)

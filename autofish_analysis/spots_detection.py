@@ -97,8 +97,6 @@ def detection_with_segmentation(rna,
         list_of_nuc = list_of_nuc[1:]
     assert all(i >= 1 for i in list_of_nuc)
 
-
-
     all_spots = []
     pbar = tqdm(list_of_nuc)
     threshold_list = []
@@ -175,7 +173,6 @@ def detection_with_segmentation(rna,
                     scale_z_xy = np.array([scale_z, scale_xy, scale_xy]))
 
 
-
     if test_mode:
         input = np.amax(rna, 0)
         pa_ch1, pb_ch1 = np.percentile(input, (1, 99))
@@ -210,9 +207,6 @@ def detection_without_segmentation(
     if threshold is None:
         threshold = detection.automated_threshold_setting(rna_log, mask)
     spots, _ = detection.spots_thresholding(rna_log, mask, threshold)
-
-    rna_gaus = ndimage.gaussian_filter(rna, sigma)
-
     if remove_non_sym:
         print(f'removing non symetric spots with min cos tetha {min_cos_tetha}')
         rna_gaus = ndimage.gaussian_filter(rna, sigma)
@@ -232,7 +226,6 @@ def folder_detection(
                      round_name_regex = "r",
                      image_name_regex = "opool1_1_MMStack_3",
                      channel_name_regex = "ch1",
-                     fixed_round_name = "r1_bc1",
                       min_distance=(4, 4, 4),
                       scale_xy=0.103,
                       scale_z=0.300,
@@ -245,6 +238,7 @@ def folder_detection(
                     dico_translation = None, # np.load("/media/tom/T7/Stitch/acquisition/dico_translation.npy", allow_pickle=True).item(),
                     diam_um=20,
                     local_detection = False,
+                    fixed_round_name="r1_bc1",
                     min_cos_tetha=0.75,
                     order=5,
                     test_mode=False,
@@ -255,19 +249,30 @@ def folder_detection(
 ):
 
     """
-    :param sigma:
-    :param rna_path:
-    :param path_output_segmentaton:
-    :param threshold_input:
-    :param output_file:
+
+    :param folder_of_rounds: path to the folder containing all the rounds
+    :param round_name_regex: regular expression to find the round name in the folder
+    :param image_name_regex: regular expression to find the image name in the folder
+    :param channel_name_regex: regular expression to find the channel name in the folder
     :param min_distance:
-    :param local_detection:
-    :param diam:
     :param scale_xy:
     :param scale_z:
+    :param sigma:
+    :param path_output_segmentaton:
+    :param dico_spot_artefact:
+    :param artefact_filter_size:
+    :param remove_non_sym:
+    :param dico_translation:
+    :param diam_um:
+    :param local_detection:
+    :param fixed_round_name: fixed round name in the folder use only if local
     :param min_cos_tetha:
     :param order:
     :param test_mode:
+    :param threshold_merge_limit:
+    :param file_extension:
+    :param threshold_input:
+    :param use_median_threshold:
     :return:
     """
 

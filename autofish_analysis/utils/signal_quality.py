@@ -11,6 +11,7 @@ import numpy as np
 import tifffile
 from bigfish.detection.utils import (get_object_radius_pixel, get_spot_surface,
                                      get_spot_volume)
+import pandas as pd
 from matplotlib import pyplot as plt
 from scipy import ndimage
 from skimage.exposure import rescale_intensity
@@ -335,12 +336,70 @@ def compute_quality_all_rounds(
                                                                        "max_signal": max_signal_spots,}
     return dico_signal_quality
 
+def folder_signal_quality(
+                                dict_spots,
+                                folder_of_rounds,
+                                round_name_regex,
+                                image_name_regex,
+                                channel_name_regex,
+                                file_extension,
+                                spot_radius,
+                                sigma = 1.3,
+                                order=5,
+                                compute_sym=False,
+                                ):
+
+    dico_signal_quality = compute_quality_all_rounds(
+                                dict_spots,
+                                folder_of_rounds = folder_of_rounds,
+                                round_name_regex=round_name_regex,
+                                image_name_regex=image_name_regex,
+                                channel_name_regex=channel_name_regex,
+                                file_extension = file_extension,
+                                spot_radius=spot_radius,
+                                    sigma=sigma,
+                                    order=order,
+                                compute_sym = compute_sym,
+                                return_list = True,
+                                 )
+
+    median_intensity = []
+    median_snr = []
+    median_symmetry_coef = []
+    median_background = []
+    for round_str in dico_signal_quality:
+        mean_intensity = []
+        mean_snr = []
+        mean_symmetry_coef = []
+        mean_background = []
+
+        for image in dico_signal_quality[round_str]:
+            mean_intensity += dico_signal_quality[round_str][image]["intensity"]
+            mean_background += dico_signal_quality[round_str][image]["background"]
+            mean_snr += dico_signal_quality[round_str][image]["snr"]
+            if compute_sym:
+                mean_symmetry_coef += dico_signal_quality[round_str][image]["symmetry_coef"]
+
+        median_intensity.append(np.median(mean_intensity))
+        median_background.append(np.median(mean_background))
+        median_snr.append(np.median(mean_snr))
+        if compute_sym:
+            median_symmetry_coef.append(np.median(mean_symmetry_coef))
 
 
-
-
-
-
+    if compute_sym:
+        df = pd.DataFrame({"round":list(dico_signal_quality.keys()),
+                          "median_intensity":median_intensity,
+                          "median_background":median_background,
+                          "median_snr":median_snr,
+                          "median_symmetry_coef":median_symmetry_coef})
+    else:
+        df = pd.DataFrame({"round":list(dico_signal_quality.keys()),
+                          "median_intensity":median_intensity,
+                          "median_background":median_background,
+                          "median_snr":median_snr})
+    df.to_csv(Path(folder_of_rounds) / "signal_quality.csv", index=False)
+    return df
 
 def plot_spots_folder(dico_spots,
                     round_folder_path = "/media/tom/T7/Stitch/acquisition/",
@@ -353,8 +412,10 @@ def plot_spots_folder(dico_spots,
                       folder_save= '/media/tom/Transcend/autofish_test/figure'):
 
 
+    print(folder_save)
 
     folder_save = Path(folder_save)
+    print(folder_save)
     folder_save.mkdir(exist_ok=True, parents=True)
     for path_round in tqdm(list(Path(round_folder_path).glob(f"{round_name_regex}"))[4:] + list(Path(round_folder_path).glob(f"{round_name_regex}"))):
         print()

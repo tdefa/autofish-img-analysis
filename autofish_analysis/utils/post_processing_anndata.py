@@ -3,9 +3,8 @@
 
 
 from pathlib import Path
-
-import anndata
 import anndata as ad
+
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -20,7 +19,15 @@ from tqdm.auto import tqdm
 
 def mask3D_to_polygone(seg_img_path,
                        cell_id_order):
-    seg_img = tifffile.imread(seg_img_path).astype("uint16")
+
+    if '.tif' in str(seg_img_path):
+        seg_img = tifffile.imread(seg_img_path).astype("uint16")
+    elif '.npy' in str(seg_img_path)[-5:]:
+        seg_img = np.load(seg_img_path)
+    else:
+        raise ValueError("seg_img_path should be a tif or npy file")
+
+
 
     dico_cell_contours = {}
     for z_index in tqdm(range(seg_img.shape[0])):
@@ -35,7 +42,12 @@ def mask3D_to_polygone(seg_img_path,
             else:
                 dico_cell_contours[cell_id] += coord
     # Convert to shapely Polygons
-    polygons = [Polygon(np.array(dico_cell_contours[k]).astype("uint16")) for k in cell_id_order]
+    polygons = []
+    for k_cell in cell_id_order:
+        if k_cell in dico_cell_contours:
+            polygons.append(Polygon(np.array(dico_cell_contours[k_cell]).astype("uint16")))
+        else:
+            polygons.append(Polygon())
     return polygons
 
 
@@ -44,6 +56,7 @@ def get_anndata(dico_gene,
                 cell_column_name = "cell_assignment",
                 add_mask_polygone_cell = False,
                 path_to_mask_cell = "/media/tom/Transcend/autofish/2023-07-04_AutoFISH-SABER/segmentation_mask",
+                round_column_name = "round_name",
                 add_mask_polygone_nuclei = False,
                 path_to_mask_nuclei = "/media/tom/Transcend/autofish/2023-07-04_AutoFISH-SABER/segmentation_mask",
                 ):
@@ -61,12 +74,13 @@ def get_anndata(dico_gene,
         r = list(dico_gene.keys())[r_index]
         dico_gene_index[dico_gene[r]] = r_index
     for position in tqdm(dico_spots_registered_df):
+        print(f"img {position}")
         list_of_dataframes_position = []
         df = dico_spots_registered_df[position]
         df.rename(columns={cell_column_name: "cell"}, inplace=True)
         df.cell =  df.cell.astype(int)
 
-        df["gene"] = [dico_gene[rl] for rl in  df['round']]
+        df["gene"] = [dico_gene[rl] for rl in  df[round_column_name]]
         list_of_dataframes_position.append(df)
         df = pd.concat(list_of_dataframes_position)
         df = df.reset_index(drop=True)
@@ -102,7 +116,6 @@ def get_anndata(dico_gene,
     cell_polygons_list = [to_geojson(cell_polygons_list[i]) for i in range(len(cell_polygons_list))]
 
 
-    import anndata as ad
     anndata = ad.AnnData(X=count_matrix,
                          obs=pd.DataFrame({"batch": batch_index_list, "position": position_list,
                                          "cell_id_mask": cell_id_all_pos_list,

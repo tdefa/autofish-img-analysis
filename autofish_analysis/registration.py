@@ -292,8 +292,13 @@ def spots_assignement(dict_spots_registered_df,
     path_to_masks = Path(path_to_masks)
     for ind_path_mask in tqdm(list(path_to_masks.glob(f"{files_mask_extension}"))):
         print(ind_path_mask)
+        if 'tif' in files_mask_extension:
+            mask = tifffile.imread(ind_path_mask)
+        elif 'npy' in files_mask_extension:
+            mask = np.load(ind_path_mask)
+        else:
+            raise ValueError("mask extension not supported")
         position = "pos" + ind_path_mask.name.split('pos')[1].split('_')[0].split('.')[0]
-        mask = tifffile.imread(ind_path_mask)
         z_range = range(mask.shape[0])
         y_range = range(mask.shape[1])
         x_range = range(mask.shape[2])

@@ -9,12 +9,13 @@ import pandas as pd
 import tifffile
 from .spots_detection import remove_double_detection
 from tqdm import tqdm
+from .utils.segmentation_processing import compute_dico_centroid
 
 if False: # change to True if you want to use imageJ
     None
-    #import imagej, scyjava
-    #scyjava.config.add_option('-Xmx40g')
-    #ij = imagej.init('sc.fiji:fiji')
+    import imagej, scyjava
+    scyjava.config.add_option('-Xmx40g')
+    ij = imagej.init('sc.fiji:fiji')
 
 #https://forum.image.sc/t/grid-collection-stitching-registered-coordinates-not-saving-correctly-with-pyimagej/22942
 def stich_with_image_J(
@@ -144,10 +145,9 @@ def dico_register_artefact(dico_spots_registered,
 
 
 
-def stich_dico_spots(dico_spots_registered,
-                     dico_stitch_img,
-
-                     dico_bc_gene = {
+def stich_dico_spots(dict_spots_registered_df,
+                     dict_stitch_img,
+                     dict_round_gene = {
                          'r1_bc1': "Rtkn2",
                          'r3_bc4': "Pecam1",
                          'r4_bc5': "Ptprb",
@@ -158,7 +158,35 @@ def stich_dico_spots(dico_spots_registered,
                      image_shape = [55, 2048, 2048],
                     nb_tiles_x = 3,
                      nb_tiles_y = 3,
-                     ):
+                     df_matching_new_cell_label = None ):
+
+
+    if df_matching_new_cell_label is not None:
+
+
+        dict_local_global_label = {} # [position][round][old_cell_label][new_cell_label]
+        list_position = []
+        list_cell_id_local_position = []
+        list_cell_id_stitched_mask = []
+
+        for image_name in df_matching_new_cell_label.keys():
+            list_position +=  list(df_matching_new_cell_label[image_name]['pos'])
+            list_cell_id_local_position += list(df_matching_new_cell_label[image_name]['cell_id_local_position'])
+            list_cell_id_stitched_mask += list(df_matching_new_cell_label[image_name]['cell_id_stitched_mask'])
+
+        unique_position = np.unique(list_position)
+        for position in unique_position:
+            dict_local_global_label[position] = {}
+
+        for index in range(len(list_position)):
+            position = list_position[index]
+            cell_id_local_position = list_cell_id_local_position[index]
+            cell_id_stitched_mask = list_cell_id_stitched_mask[index]
+            dict_local_global_label[position][cell_id_local_position] = cell_id_stitched_mask
+
+            dict_local_global_label[position][-1] = -1
+
+
 
 
 
@@ -167,7 +195,6 @@ def stich_dico_spots(dico_spots_registered,
     image_ly = image_shape[-1]
     final_shape_xy = np.array([ image_ly * nb_tiles_y + 1000, image_lx * nb_tiles_x + 1000,]) #ten pixels margin
     final_masks = np.zeros([image_shape[0] +10, int(final_shape_xy[0]), int(final_shape_xy[1])], dtype= np.uint16 )
-
     #### stich all the spots
     list_x = []
     list_y = []
@@ -175,11 +202,12 @@ def stich_dico_spots(dico_spots_registered,
     list_round = []
     list_gene = []
     list_image_position = []
-    new_spot_list_dico = {}
-    dico_spots_registered_stitch_df = {}
-    for image_name in dico_stitch_img:
+    list_cell_assignment = []
+    dict_spots_registered_stitch_df = {}
+
+    for image_name in dict_stitch_img:
         print(image_name)
-        dico_stitch =  dico_stitch_img[image_name]
+        dico_stitch =  dict_stitch_img[image_name]
         for position in dico_stitch:
             print(position)
             if dico_stitch is not None and position in dico_stitch.keys():
@@ -187,28 +215,32 @@ def stich_dico_spots(dico_spots_registered,
                 cx, cy, cz = round(cx), round(cy), round(cz)
             else:
                 cx, cy, cz = 0, 0, 0
-            for round_t in dico_spots_registered:
-                if round_t not in dico_bc_gene:
-                    continue
-                spot_list =  dico_spots_registered[round_t][position]
-                if round_t not in new_spot_list_dico.keys():
-                    new_spot_list_dico[round_t] = []
-                for spot in spot_list:
 
-                    if final_masks[int(spot[0] + cz), int(spot[1] + cy), int(spot[2] + cx)] == 0:
+            tile_list_x  = dict_spots_registered_df[position]['x']
+            tile_list_y = dict_spots_registered_df[position]['y']
+            tile_list_z = dict_spots_registered_df[position]['z']
+            tile_list_round = dict_spots_registered_df[position]['round']
+            if "cell_assignment" in dict_spots_registered_df[position]:
+                tile_list_cell_assignment = dict_spots_registered_df[position]['cell_assignment']
+                if df_matching_new_cell_label is not None:
+                    tile_list_cell_assignment = [dict_local_global_label[position][cell_id_local_position]
+                                                 for cell_id_local_position in tile_list_cell_assignment]
 
-                        list_z.append(spot[0] + cz)
-                        list_y.append(spot[1] + cy)
-                        list_x.append(spot[2] + cx)
-                        list_round.append(round_t)
-                        list_gene.append(dico_bc_gene[round_t])
-                        list_image_position.append(position)
+            for spot_index in range(len(tile_list_x)):
+                if final_masks[int(tile_list_z[spot_index] + cz),
+                int(tile_list_y[spot_index] + cy),
+                int(tile_list_x[spot_index] + cx)] == 0:
+                    list_z.append(tile_list_z[spot_index] + cz)
+                    list_y.append(tile_list_y[spot_index] + cy)
+                    list_x.append(tile_list_x[spot_index] + cx)
+                    list_round.append(tile_list_round[spot_index])
+                    list_gene.append(dict_round_gene[tile_list_round[spot_index]])
+                    list_image_position.append(position)
 
-                        new_spot_list_dico[round_t].append([spot[0] + cz, spot[1] + cy, spot[2] + cx])
-
-            final_masks[cz : cz +image_shape[0] , cy : cy + image_ly, cx:cx +  image_lx] = np.ones([image_shape[0],image_ly, image_lx ])
-
-
+                    if "cell_assignment" in dict_spots_registered_df[position]:
+                        list_cell_assignment.append(tile_list_cell_assignment[spot_index])
+            final_masks[cz : cz +image_shape[0] ,
+            cy : cy + image_ly, cx:cx +  image_lx] = np.ones([image_shape[0],image_ly, image_lx ])
 
         df_coord = pd.DataFrame()
         df_coord['x'] = list_x
@@ -216,120 +248,13 @@ def stich_dico_spots(dico_spots_registered,
         df_coord['z'] = list_z
         df_coord['round_name'] = list_round
         df_coord['gene'] = list_gene
+        if "cell_assignment" in dict_spots_registered_df[position]:
+            df_coord['cell_assignment'] = list_cell_assignment
         df_coord['image_position'] = list_image_position
-        dico_spots_registered_stitch_df[image_name] = df_coord
+        dict_spots_registered_stitch_df[image_name] = df_coord
 
-    return dico_spots_registered_stitch_df
+    return dict_spots_registered_stitch_df
 
-    ### register each round to the ref round
-    dico_spots_registered = {}
-    missing_data = []
-    image_list = list(dico_spots[ref_round].keys())
-    for round_t in tqdm(list(dico_spots.keys())):
-        dico_spots_registered[round_t] = {}
-        for image_name_ref_round in tqdm(image_list):
-            ### determine the position of the image , the number after "pos" is the position
-
-            image_position = "pos" + image_name_ref_round.split('pos')[1].split('_')[0]
-
-
-            image_name = None
-            for k in dico_spots[round_t].keys():
-                if image_position == "pos" + k.split('pos')[1].split('_')[0]:
-                    image_name = k
-                    break
-
-            #print(image_name)
-            if image_name not in dico_spots[round_t].keys():
-                dico_spots_registered[round_t][image_position] = []
-                missing_data.append([round_t, image_name])
-                print(f'missing data {round_t} {image_name}')
-
-                continue
-
-            if round_t not in dico_translation[image_position][ref_round].keys() and round_t != ref_round:
-                missing_data.append([round_t, image_name])
-                dico_spots_registered[round_t][image_position] = []
-                print(f'missing data {round_t} {image_name}')
-                continue
-
-            #if image_position  == "pos2":
-            #    print(image_name, round_t, "pos 2")
-            #    missing_data.append([round_t, image_name])
-            #    dico_spots_registered[round_t][image_name_ref_round] = []
-            #    continue
-
-            if round_t == ref_round:
-                x_translation = 0
-                y_translation = 0
-            else:
-                x_translation = dico_translation[image_position][ref_round][round_t]['x_translation']
-                y_translation = dico_translation[image_position][ref_round][round_t]['y_translation']
-            dico_spots_registered[round_t][image_position] = dico_spots[round_t][image_name] - np.array([0, y_translation, x_translation])
-            if check_removal:
-                clean_spots = remove_double_detection(input_array = dico_spots_registered[round_t][image_position],
-                    threshold =threshold_merge_limit,
-                    scale_z_xy = np.array([scale_z, scale_xy, scale_xy]))
-                if len(clean_spots) != len(dico_spots_registered[round_t][image_position]):
-                    print("double detection removal bug during the detection of spots")
-                    dico_spots_registered[round_t][image_position] = clean_spots
-
-
-    #### remove overlapping spot between tiles
-
-    ###  create df coord in ref round + gene
-    image_lx = image_shape[-2]
-    image_ly = image_shape[-1]
-    final_shape_xy = np.array([image_lx * nb_tiles + 100, image_ly * nb_tiles + 100]) #ten pixels margin
-    final_masks = np.zeros([image_shape[0] +10, int(final_shape_xy[0]), int(final_shape_xy[1])], dtype= np.uint16 )
-
-    #### stich all the spots
-    list_x = []
-    list_y = []
-    list_z = []
-    list_round = []
-    list_gene = []
-    list_image_position = []
-    new_spot_list_dico = {}
-
-    for image_name in dico_translation:
-        if dico_stitch is not None and image_name in dico_stitch.keys():
-            cx, cy, cz = dico_stitch[image_name]
-            cx, cy, cz = round(cx), round(cy), round(cz)
-        else:
-            cx, cy, cz = 0, 0, 0
-        for round_t in dico_spots_registered:
-            if round_t not in dico_bc_gene:
-                continue
-            spot_list =  dico_spots_registered[round_t][image_name]
-            if round_t not in new_spot_list_dico.keys():
-                new_spot_list_dico[round_t] = []
-            for spot in spot_list:
-
-                if final_masks[int(spot[0] + cz), int(spot[1] + cy), int(spot[2] + cx)] == 0:
-
-                    list_z.append(spot[0] + cz)
-                    list_y.append(spot[1] + cy)
-                    list_x.append(spot[2] + cx)
-                    list_round.append(round_t)
-                    list_gene.append(dico_bc_gene[round_t])
-                    list_image_position.append(image_name)
-
-                    new_spot_list_dico[round_t].append([spot[0] + cz, spot[1] + cy, spot[2] + cx])
-
-        final_masks[cz : cz +image_shape[0] , cy : cy + image_ly, cx:cx +  image_lx] = np.ones([image_shape[0],image_ly, image_lx ])
-
-
-
-    df_coord = pd.DataFrame()
-    df_coord['x'] = list_x
-    df_coord['y'] = list_y
-    df_coord['z'] = list_z
-    df_coord['round_name'] = list_round
-    df_coord['gene'] = list_gene
-    df_coord['image_position'] = list_image_position
-
-    return df_coord, new_spot_list_dico, missing_data, dico_spots_registered
 
     #df_coord.to_csv(f"{args.folder_of_rounds}{args.name_dico}_df_coord.csv", index=False)
 
@@ -343,12 +268,13 @@ def stich_segmask(dico_stitch_img, # np.load(f"/media/tom/T7/Stitch/acquisition/
                   nb_tiles_x = 3,
                   nb_tiles_y=3,
 
-                  compute_dico_centroid = True,
+                  compute_dico_centroid = False,
                   iou_threshold = 0.25):
 
 
 
     Path(path_to_save_mask).mkdir(parents=True, exist_ok=True)
+    dict_df_matching_new_cell_label = {}
 
     for image_name in dico_stitch_img:
         dico_stitch = dico_stitch_img[image_name]
@@ -360,7 +286,6 @@ def stich_segmask(dico_stitch_img, # np.load(f"/media/tom/T7/Stitch/acquisition/
         final_shape_xy = np.array([ image_ly * nb_tiles_y + 1000, image_lx * nb_tiles_x + 1000]) #ten pixels margin
         final_masks = np.zeros([image_shape[0]+max_z, int(final_shape_xy[0]), int(final_shape_xy[1])], dtype= np.uint16 )
         print(final_masks.shape)
-        dico_new_to_old_label_pos = {}
         list_cell_local = []
         list_cell_global = []
         list_pos = []
@@ -368,7 +293,6 @@ def stich_segmask(dico_stitch_img, # np.load(f"/media/tom/T7/Stitch/acquisition/
             image_position = "pos" + path_ind_mask.name.split("pos")[1].split(".")[0].split("_")[0]
             if image_position not in dico_stitch:
                 continue
-            dico_new_to_old_label = {}
             print(path_ind_mask.name)
             ind_mask = tifffile.imread(path_ind_mask)
             image_position = "pos" + path_ind_mask.name.split("pos")[1].split(".")[0].split("_")[0]
@@ -421,7 +345,6 @@ def stich_segmask(dico_stitch_img, # np.load(f"/media/tom/T7/Stitch/acquisition/
             final_masks[z_or:z_or+image_lz, y_or:y_or + image_ly, x_or:x_or + image_lx] = ind_mask
             ###
             if compute_dico_centroid:
-                from utils.segmentation_processing import compute_dico_centroid
                 compute_dico_centroid_ind_mask = compute_dico_centroid(mask_nuclei = ind_mask,
                                                                        dico_simu=None,
                                                                        offset=np.array([0, y_or, x_or]))
@@ -433,14 +356,19 @@ def stich_segmask(dico_stitch_img, # np.load(f"/media/tom/T7/Stitch/acquisition/
                 np.save((Path(path_to_save_mask) / "dico_centroid") / image_name, dico_centroid)
 
         df_matching_new_cell_label = pd.DataFrame()
-        df_matching_new_cell_label["local_label"] = list_cell_local
-        df_matching_new_cell_label["global_label"] = list_cell_global
+        df_matching_new_cell_label["cell_id_local_position"] = list_cell_local
+        df_matching_new_cell_label["cell_id_stitched_mask"] = list_cell_global
         df_matching_new_cell_label["pos"] = list_pos
+        dict_df_matching_new_cell_label[image_name] = df_matching_new_cell_label
 
         np.save(Path(path_to_save_mask) / image_name, final_masks)
 
         #final_masks[:, x_or:x_or + image_lx, y_or:y_or + image_ly]
-    return final_masks, dico_centroid, df_matching_new_cell_label
+    if compute_dico_centroid:
+
+        return  dico_centroid, dict_df_matching_new_cell_label
+    else:
+        return dict_df_matching_new_cell_label
 
 def stich_from_dico_img(dico_stitch, # np.load(f"/media/tom/T7/Stitch/acquisition/2mai_dico_stitch.npy",allow_pickle=True).item()
                   path_mask = "/media/tom/Transcend/lustr2023/images/r1_Cy3",
