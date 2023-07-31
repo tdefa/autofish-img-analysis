@@ -25,6 +25,11 @@ pip install -e . ```
 
 The repository contains  tutorial notebooks to get started with the package.
 
+add the conda environnement to jupyter notebook:
+```bash
+python -m ipykernel install --user --name=autofish_analysis
+```
+
 You can download example data : https://cloud.minesparis.psl.eu/index.php/s/i9HaU36Fx3rokXB
 
 

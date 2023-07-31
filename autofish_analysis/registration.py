@@ -348,7 +348,8 @@ def plot_registrered_image(
     dico_translation,
         path_image1="/media/tom/Transcend/lustr2023/images/r1_Cy3/r1_pos22_ch0.tif",
         path_image2="/media/tom/Transcend/lustr2023/images/r11/r11_pos22_ch0.tif",
-    plot_napari = True,):
+    plot_napari = True,
+figsize = (10, 10)):
 
     image1 =np.amax(tifffile.imread(path_image1), 0)
     image2 = np.amax(tifffile.imread(path_image2), 0)
@@ -374,11 +375,23 @@ def plot_registrered_image(
         viewer.add_image(shifted_image, name="shifted_image2")
 
     else:
-        fig, ax = plt.subplots(figsize =  (15,15),ncols=2,)
-        ax[0].imshow(image1, alpha=0.5, cmap= "gray")
-        ax[0].imshow(image2, alpha=0.5)
-        ax[1].imshow(image1, alpha=0.5)
-        ax[1].imshow(shifted_image)
+        from skimage.exposure import rescale_intensity
+
+        pa_ch1, pb_ch1 = np.percentile(image1, (1, 99))
+        image1 = rescale_intensity(image1, in_range=(pa_ch1, pb_ch1), out_range=np.uint8)
+
+        pa_ch2, pb_ch2 = np.percentile(image2, (1, 99))
+        image2 = rescale_intensity(image2, in_range=(pa_ch2, pb_ch2), out_range=np.uint8)
+
+        pa_ch3, pb_ch3 = np.percentile(shifted_image, (1, 99))
+        shifted_image = rescale_intensity(shifted_image, in_range=(pa_ch3, pb_ch3), out_range=np.uint8)
+
+
+        fig, ax = plt.subplots(figsize =  figsize,ncols=2,)
+        ax[0].imshow(image1, alpha=0.5, cmap= "RdGy_r")
+        ax[0].imshow(image2, alpha=0.5, cmap= "Greens_r")
+        ax[1].imshow(image1, alpha=0.5, cmap= "RdGy_r")
+        ax[1].imshow(shifted_image, alpha=0.5,cmap= "Greens_r")
      #   ax[1].imshow(shifted_image)
 
         plt.show()
