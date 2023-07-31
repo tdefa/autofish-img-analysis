@@ -4,14 +4,12 @@
 
 
 import re
-# %% Imports
 from pathlib import Path
 
 import numpy as np
 from skimage.io import imread, imsave
 from tqdm import tqdm
 
-# %%
 
 def NDTiffStack_to_tiff(
 
@@ -86,10 +84,8 @@ def NDTiffStack_to_tiff(
             round_name = path_images.name
             for old, new in string_replacements_path:
                 round_name = re.sub(old, new, round_name, count=0, flags=0)
-
             path_save = folder_save / round_name
             print(f'  Images will be saved in folder: {path_save}')
-
             path_save.mkdir(parents=True, exist_ok=True)
 
             # >>>>>  Loop over images and split channels
@@ -165,4 +161,3 @@ def NDTiffStack_to_tiff(
             print(f'ERROR: {e}')
             list_exceptions.append((e, path_images.name))
     return list_exceptions
-
