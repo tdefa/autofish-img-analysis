@@ -2,7 +2,7 @@
 
 
 
-# AUTOFISH PACKAGE FOR IMAGES ANALYSIS
+# AUTOFISH PACKAGE FOR IMAGE ANALYSIS
 
 Python library for image analysis of FISH images. 
 The package is specially designed to work with the autoFISH project https://github.com/fish-quant/autofish
