@@ -9,8 +9,8 @@ import tifffile
 from scipy.ndimage import gaussian_filter
 from tqdm import tqdm
 
-from .spots_detection import remove_double_detection
-
+#from .spots_detection import remove_double_detection
+from autofish_analysis.spots_detection import remove_double_detection
 
 def compute_euler_transform(fixed_image,
                             moving_image,  # works ok
@@ -24,12 +24,15 @@ def compute_euler_transform(fixed_image,
                             convergenceMinimumValue=1e-6,
                             convergenceWindowSize=10,
                             shrinkFactors = [4 ,2 ,1],
-                            smoothingSigmas=[2 ,1 ,0],):
+                            smoothingSigmas=[2 ,1 ,0],
+                            similarity_metric = "mattes"
+                            ):
 
     """
     :param fixed_image: image to register to
     :param moving_image: image to register
     :param ndim: 2 or 3
+    :param similarity_metric: as to be in ["mean_squares", "correlation", "ants", "mattes", "demons" , "joint_histogram"]
     :return: thetha, x_translation, y_translation
     fixed_image + (x_translation, y_translation) = moving_image
     """
@@ -55,7 +58,21 @@ def compute_euler_transform(fixed_image,
     registration_method = sitk.ImageRegistrationMethod()
 
     # Similarity metric settings.
-    registration_method.SetMetricAsMattesMutualInformation(numberOfHistogramBins=numberOfHistogramBins)
+    if similarity_metric == "mean_squares":
+        registration_method.SetMetricAsMeanSquares()
+    elif similarity_metric == "correlation":
+        registration_method.SetMetricAsCorrelation()
+    elif similarity_metric == "ants":
+        registration_method.SetMetricAsANTSNeighborhoodCorrelation(radius=3)
+    elif similarity_metric == "mattes":
+        registration_method.SetMetricAsMattesMutualInformation(numberOfHistogramBins=numberOfHistogramBins)
+    elif similarity_metric == "demons":
+        registration_method.SetMetricAsDemons()
+    elif similarity_metric == "joint_histogram":
+        registration_method.SetMetricAsJointHistogramMutualInformation(numberOfHistogramBins=numberOfHistogramBins)
+    else:
+        raise ValueError("similarity_metric not recognized")
+
     registration_method.SetMetricSamplingStrategy(registration_method.RANDOM)
     registration_method.SetMetricSamplingPercentage(sampling_percentage)
 
@@ -91,7 +108,7 @@ def compute_euler_transform(fixed_image,
         thetha = final_transform.GetParameters()[0]
         x_translation = final_transform.GetParameters()[1] ## itk do not uxe python convention
         y_translation = final_transform.GetParameters()[2]
-        assert thetha < max_rotation_accepted,  f"the image is rotated more than the max_rotation_accepted :  {max_rotation_accepted} radians"
+        #assert thetha < max_rotation_accepted,  f"the image is rotated more than the max_rotation_accepted :  {max_rotation_accepted} radians"
         return final_metric_value, thetha, x_translation, y_translation
     elif ndim == 3:
         raise NotImplementedError("3d registration not implemented yet")
@@ -106,7 +123,9 @@ def folder_translation(folder_of_rounds = "/media/tom/T7/Stitch/acquisition/",  
                        chanel_regex = 'ch1',
                        registration_repeat = 5,
                        position_naming = True,
-                       sigma_gaussian_filter = 0.8):
+                       sigma_gaussian_filter = 0.8,
+                        similarity_metric = "mattes"
+                       ):
     """
 
     :param folder_of_rounds:  folder containing the rounds
@@ -157,7 +176,8 @@ def folder_translation(folder_of_rounds = "/media/tom/T7/Stitch/acquisition/",  
                         final_metric_value, thetha, x_translation, y_translation = compute_euler_transform(
                                             fixed_image = fixed_image,
                                                 moving_image = moving_image,  # works ok
-                                                ndim = fixed_image.ndim)
+                                                ndim = fixed_image.ndim,
+                                                similarity_metric = similarity_metric)
                         rep_list.append([final_metric_value, thetha, x_translation, y_translation])
                 except RuntimeError:
                     print(f"registration failed {(path_img_static.name, fixed_round_name)}")
@@ -344,12 +364,11 @@ def shift(image, translation):
 
 
 def plot_registrered_image(
-
-    dico_translation,
+        dico_translation,
         path_image1="/media/tom/Transcend/lustr2023/images/r1_Cy3/r1_pos22_ch0.tif",
         path_image2="/media/tom/Transcend/lustr2023/images/r11/r11_pos22_ch0.tif",
-    plot_napari = True,
-figsize = (10, 10)):
+        plot_napari = True,
+        figsize = (10, 10)):
 
     image1 =np.amax(tifffile.imread(path_image1), 0)
     image2 = np.amax(tifffile.imread(path_image2), 0)
@@ -363,8 +382,9 @@ figsize = (10, 10)):
     x_translation = dico_translation[pos1][round1][round2]['x_translation']
     y_translation = dico_translation[pos1][round1][round2]['y_translation']
 
-    shifted_image = shift(image2, translation=(x_translation, y_translation))
+    print(f'x_translation {x_translation} y_translation {y_translation} ')
 
+    shifted_image = shift(image2, translation=(x_translation, y_translation))
     from matplotlib import pyplot as plt
 
     ### plot shifted image and image 1
@@ -392,7 +412,52 @@ figsize = (10, 10)):
         ax[0].imshow(image2, alpha=0.5, cmap= "Greens_r")
         ax[1].imshow(image1, alpha=0.5, cmap= "RdGy_r")
         ax[1].imshow(shifted_image, alpha=0.5,cmap= "Greens_r")
+        plt.title(f'x_translation {round(x_translation, 3)} y_translation {round(y_translation, 3)}')
      #   ax[1].imshow(shifted_image)
 
-        plt.show()
+    return fig, ax
 
+#%%
+
+if __name__ == "__main__":
+
+    for similarity_metric in ["mean_squares", "correlation", "ants","demons", "joint_histogram"]: # "mattes",
+
+        dict_translation = folder_translation(
+            folder_of_rounds="/media/tom/Transcend/autofish/2023-06-28_AutoFISH_22rounds/",  # works ok
+                           fixed_round_name="r1",
+                           folder_regex='r*',
+                           chanel_regex='*ch0*',
+                           registration_repeat=10,
+                           position_naming=True,
+                           sigma_gaussian_filter=0.8,
+            similarity_metric = similarity_metric
+
+        )
+
+        np.save(f'/media/tom/Transcend/autofish/2023-06-28_AutoFISH_22rounds/dict_translation_ref_r1_050424_{similarity_metric}.npy',
+
+                dict_translation)
+        dict_spots = np.load('/media/tom/Transcend/autofish/2023-06-28_AutoFISH_22rounds/18jully_dico_spots_local_detection0_r_mask_artefact0_1.3_remove_non_sym0.npy',
+
+                             allow_pickle=True).item()
+        dict_spots_registered_df, dict_spots_registered, missing_data = spots_registration(dict_spots,
+                           dict_translation,
+                           fixed_round_name="r1",
+                           check_removal=False,
+                           threshold_merge_limit=None,
+                           scale_xy=0.103,
+                           scale_z=0.300,
+                           )
+
+        ## save result
+        np.save(f'/media/tom/Transcend/autofish/2023-06-28_AutoFISH_22rounds/dict_spots_registered_df_050424_{similarity_metric}.npy', dict_spots_registered_df)
+        np.save(f'/media/tom/Transcend/autofish/2023-06-28_AutoFISH_22rounds/dict_spots_registered_050424_{similarity_metric}.npy', dict_spots_registered)
+
+        path_to_masks = "/media/tom/Transcend/autofish/2023-06-28_AutoFISH_22rounds/segmentation_mask"
+        dict_spots_registered_df = spots_assignement(dict_spots_registered_df,
+                                                     path_to_masks=path_to_masks,
+                                                     files_mask_extension="*.tif*",
+                                                     in_place=False, )
+
+        np.save(f'/media/tom/Transcend/autofish/2023-06-28_AutoFISH_22rounds/dict_spots_registered_df_assigned_050424_{similarity_metric}.npy', dict_spots_registered_df)

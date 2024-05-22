@@ -18,6 +18,7 @@ from tqdm import tqdm
 
 from .utils.segmentation_processing import (erase_small_nuclei, erase_solitary,
                                             stitch3D_z)
+from cellpose import models  ## speed import
 
 
 def folder_segmentation(path_to_staining,
@@ -82,7 +83,17 @@ def folder_segmentation(path_to_staining,
 
 
 
+if __name__ == "__main__":
+    from cellpose import models  ## speed import
 
+    model = models.Cellpose(gpu=dico_param['gpu'], model_type=dico_param['model_type'])
+
+    masks, flows, styles, diams = model.eval(img,
+                                             diameter=dico_param["diameter"],
+                                             channels=[0, 0],
+                                             flow_threshold=dico_param["flow_threshold"],
+                                             do_3D=dico_param["do_3D"],
+                                             stitch_threshold=0)
 
 
 

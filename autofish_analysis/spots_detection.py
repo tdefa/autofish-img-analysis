@@ -230,8 +230,8 @@ def folder_detection(
                       scale_xy=0.103,
                       scale_z=0.300,
                       sigma = 1.35,
-        path_output_segmentaton=None,
-        dico_spot_artefact = None,
+                    path_output_segmentaton=None,
+                    dico_spot_artefact = None,
                     artefact_filter_size = 32,
                     remove_non_sym = False,
                     ### detection parameters with segmentation
@@ -246,7 +246,7 @@ def folder_detection(
                     file_extension = ".ti",
                     threshold_input =  {},
                     use_median_threshold = False,
-):
+            ):
 
     """
 

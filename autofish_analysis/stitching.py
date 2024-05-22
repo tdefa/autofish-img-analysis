@@ -44,6 +44,7 @@ STITCHING_MACRO,
     for img_name in img_pos_dico:
         print(img_name)
         first_file_index_i = int(img_pos_dico[img_name][0].split('pos')[1])
+        print(f'first file index {first_file_index_i}')
 
         args = {
             "first_file_index_i": first_file_index_i,
@@ -105,7 +106,7 @@ def parse_txt_file(path_txt =  "/media/tom/T7/Stitch/acquisition/r1_bc1/TileConf
 
 
 
-def dico_register_artefact(dico_spots_registered,
+def dict_register_artefact(dico_spots_registered,
                            dico_translation,
                        dico_bc_noise= {'r0': 'artefact',
                                 'r2': 'artefact'},

@@ -45,6 +45,23 @@ dico_bc_gene1 = {
 }
 
 
+
+dico_bc_gene0 = {
+    'r1': "Rtkn2", #bc1
+    'r2': "Lamp3", # bc3
+    'r3': "Pecam1", #bc4
+    'r4': "Ptprb", #bc5
+    'r5': "Pdgfra", #bc6
+    'r6': "Chil3", #bc7
+    'r7': "Rtkn2",  # bc7
+
+    'r8': "Lamp3",  # bc7
+    'r9': "Pecam1",  # bc7
+    'r10': "Rtkn2",  # bc7
+
+}
+
+
 dico_bc_noise = {"r1_Cy5": "artefact"}
 
 
@@ -58,21 +75,22 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='test')
     parser.add_argument("--path_NDTiffStack_to_tiff",
                         type=str,
-                        default="/media/tom/Transcend/2023-07-04_AutoFISH-SABER/",
+                        default="/home/tom/Bureau/2023-10-06_LUSTRA_raw/",
                         help='')
+
     parser.add_argument("--folder_of_rounds",
                         type=str,
-                        default="/media/tom/Transcend/autofish/2023-06-28_AutoFISH_22rounds/",
+                        default="/home/tom/Bureau/2023-10-06_LUSTRA/",
                         help='')
 
     parser.add_argument("--path_to_round_for_segmentation",
                         type=str,
-                        default="/media/tom/Transcend/autofish/2023-06-28_AutoFISH_22rounds/r1",
+                        default="/home/tom/Bureau/2023-10-06_LUSTRA/r1",
                         help='')
 
     parser.add_argument("--path_to_mask_dapi",
                         type=str,
-                        default="/media/tom/Transcend/autofish/2023-06-28_AutoFISH_22rounds/segmentation_mask/",
+                        default="/home/tom/Bureau/2023-10-06_LUSTRA/segmentation_mask/",
                         help='')
     parser.add_argument("--regex_dapi",
                         type=str,
@@ -91,6 +109,7 @@ if __name__ == '__main__':
                         type=str,
                         default="*ch0*",
                         help='channel for the fish')
+
     parser.add_argument("--image_name_regex",
                         type=str,
                         default="[^r]*",
@@ -98,7 +117,7 @@ if __name__ == '__main__':
 
     parser.add_argument("--name_dico",
                         type=str,
-                        default="26_july",
+                        default="26_oct",
                         help='')
     parser.add_argument("--scale_xy", type=float, default=0.108)
     parser.add_argument("--scale_z", type=float, default=0.300)
@@ -138,7 +157,7 @@ if __name__ == '__main__':
     parser.add_argument("--stich_segmentation_mask", type = int, default = 1)
 
     ##### task to do
-    parser.add_argument("--NDTiffStack_to_tiff", default=0, type=int)
+    parser.add_argument("--NDTiffStack_to_tiff", default=1, type=int)
 
     parser.add_argument("--segmentation", default=0, type=int)
     parser.add_argument("--registration", default=1, type=int)
@@ -163,6 +182,9 @@ if __name__ == '__main__':
 
     args.image_path_stiching = args.folder_of_rounds + args.fixed_round_name
     args.output_path_stiching = args.folder_of_rounds + args.fixed_round_name + "output_s"
+    Path(args.image_path_stiching).mkdir(exist_ok=True, parents=True)
+    Path(args.output_path_stiching).mkdir(exist_ok=True, parents=True)
+
 
     e = datetime.datetime.now()
     date_str = f"{e.month}_{e.day}_{e.hour}_{e.minute}_{e.second}"
@@ -177,16 +199,16 @@ if __name__ == '__main__':
 
     if args.NDTiffStack_to_tiff == 1:
 
-        from split_ndtiff_stack import NDTiffStack_to_tiff
+        from autofish_analysis.split_ndtiff_stack import NDTiffStack_to_tiff
 
         NDTiffStack_to_tiff(
-            path_parent=args.path_NDTiffStack_to_tiff,
-            n_z=33,  # number of z plances
-            n_pos=3,  # number of field of images
+            path_parent=args.path_NDTiffStack_to_tiff + 'test/',
+            n_z=41,  # number of z plances
+            n_pos=9,  # number of field of images
 
             # Number of channels
             n_c_default=1,
-            n_c_dict={'r0_1': 2, 'r1_1': 2},
+            n_c_dict={'r1_1': 2}, ## round with the dapi
 
             # Diverse string replacements
             string_replacements_path=[('images_multi-stack', 'images'),
@@ -201,11 +223,11 @@ if __name__ == '__main__':
     if args.segmentation == 1:
         from pathlib import Path
 
-        from segmentation import folder_segmentation
+        from autofish_analysis.segmentation import folder_segmentation
         print("segmentation")
         ### set the cellpose parameters
         dico_param = {}
-        dico_param["diameter"] = 230
+        dico_param["diameter"] = 50
         dico_param["flow_threshold"] = 0.6
         dico_param["mask_threshold"] = 0
         dico_param["do_3D"] = False
@@ -217,11 +239,10 @@ if __name__ == '__main__':
         dico_param["model_type"] = "cyto"
         dico_param["gpu"] = True
         folder_segmentation(path_to_staining=args.path_to_round_for_segmentation,
-                            regex_dapi=args.regex_dapi,
-                            path_to_mask=args.path_to_mask,
+                            regex_staining=args.regex_dapi,
+                            path_to_mask=args.path_to_mask_dapi + '50/',
                             dico_param=dico_param,
                             output_dtype=np.int32
-
                             )
 
     ########
@@ -229,22 +250,55 @@ if __name__ == '__main__':
     #######
 
     if args.registration == 1:
-        from registration import folder_translation
+
+
+        from autofish_analysis.registration import folder_translation
 
         dico_translation = folder_translation(folder_of_rounds=args.folder_of_rounds,  # works ok
                                               fixed_round_name=args.fixed_round_name,
                                               folder_regex=args.folder_regex_round,
                                               chanel_regex=args.chanel_regex,
                                               registration_repeat=5,
-                                              sigma_gaussian_filter = 0.9)
+                                              sigma_gaussian_filter = 0.9,
+                                              max_rotation_accepted=0.05,
+                                              )
 
         np.save(f"{args.folder_of_rounds}{args.name_dico}_dico_translation.npy", dico_translation)
+
+    if args.plot_registration:
+        from autofish_analysis.registration import plot_registrered_image
+        dico_translation =  np.load(f"{args.folder_of_rounds}{args.name_dico}_dico_translation.npy", allow_pickle=True).item()
+
+        list_round = list(dico_translation[list(dico_translation.keys())[0]][args.fixed_round_name].keys())
+        list_pos = list(dico_translation.keys())
+        for rd in list_round:
+            if rd == args.fixed_round_name:
+                continue
+            path_save = Path(args.folder_of_rounds) / (rd + "/" + "registration")
+            path_save.mkdir(exist_ok=True, parents=True)
+
+            for pos in list_pos:
+                path_image1= Path(args.folder_of_rounds) / (args.fixed_round_name + '/' + args.fixed_round_name + "_" + pos + "_ch0.tif")
+                path_image2= Path(args.folder_of_rounds) / (rd + '/' + rd + "_" + pos + "_ch0.tif")
+
+
+
+                fig, ax = plot_registrered_image(
+                    dico_translation,
+                    path_image1=path_image1,
+                    path_image2=path_image2,
+                    plot_napari=False,
+                    figsize=(15, 15)
+                )
+                fig.savefig(path_save / Path(path_image2).stem )
+
+
 
     ####################
     ## Do individual spots detection (optional : using mask segmentation)
     ####################
     if args.spots_detection == 1:
-        from spots_detection import folder_detection
+        from autofish_analysis.spots_detection import folder_detection
         print("spots detection")
         if args.local_detection:
             dico_translation = np.load(f"{args.folder_of_rounds}{args.name_dico}_dico_translation.npy",
@@ -253,15 +307,15 @@ if __name__ == '__main__':
             dico_translation = None
 
         if args.mask_artefact:
-            dico_spot_artefact = np.load(f"{args.folder_of_rounds}{args.name_dico}_dico_spot_artefact.npy",
-                                       allow_pickle=True).item()
-            artefact_filter_size = args.artefact_filter_size
+            #dico_spot_artefact = np.load(f"{args.folder_of_rounds}{args.name_dico}_dico_spot_artefact.npy",
+             #                          allow_pickle=True).item()
+            dico_spot_artefact = np.load("/home/tom/Bureau/2023-10-06_LUSTRA/26_oct_dico_spot_artefact_r1_noise_r6.npy", allow_pickle=True).item()
         else:
             dico_spot_artefact = None
             artefact_filter_size = None
         threshold_input = None
         dico_spots, dico_threshold = folder_detection(
-            round_folder_path=args.folder_of_rounds,
+            folder_of_rounds=args.folder_of_rounds,
             round_name_regex=args.folder_regex_round,
             image_name_regex=args.image_name_regex,
             channel_name_regex=args.chanel_regex,
@@ -273,7 +327,7 @@ if __name__ == '__main__':
             sigma=args.sigma_detection,
             ## mask artefact
             dico_spot_artefact=dico_spot_artefact,
-            artefact_filter_size = artefact_filter_size,
+            artefact_filter_size = args.artefact_filter_size,
             ### detection parameters with segmentation
             dico_translation=dico_translation,
             diam_um=20,
@@ -290,6 +344,12 @@ if __name__ == '__main__':
         np.save(f"{args.folder_of_rounds}{args.name_dico}_dico_spots_local_detection{args.local_detection}" + \
                 f"_{args.folder_regex_round}_mask_artefact{args.mask_artefact}_{args.sigma_detection}_remove_non_sym{args.remove_non_sym}.npy",
                 dico_spots)
+
+    if args.plot_spots_detection:
+
+
+
+
 
     ########
     # Compute signal quality for each round
@@ -347,7 +407,7 @@ if __name__ == '__main__':
 
     ########################### Registration of the spots ################
     if args.spots_registration == 1:
-        from stitching import spots_registration
+        from autofish_analysis.registration import spots_registration
         dico_spots = np.load \
             (f"{args.folder_of_rounds}{args.name_dico}_dico_spots_local_detection{args.local_detection}" + \
              f"_{args.folder_regex_round}_mask_artefact{args.mask_artefact}_{args.sigma_detection}_remove_non_sym{args.remove_non_sym}.npy",
@@ -357,7 +417,7 @@ if __name__ == '__main__':
         dico_spots_registered_df, dico_spots_registered, missing_data = spots_registration(
             dico_spots,
             dico_translation,
-            ref_round=args.fixed_round_name,
+            fixed_round_name=args.fixed_round_name,
             check_removal=False,
             threshold_merge_limit=0.330,
             scale_xy=0.103,
@@ -365,6 +425,25 @@ if __name__ == '__main__':
         )
         np.save(f"{args.folder_of_rounds}{args.name_dico}_dico_spots_registered_df_{args.fixed_round_name}" , dico_spots_registered_df)
         np.save(f"{args.folder_of_rounds}{args.name_dico}_dico_spots_registered_{args.fixed_round_name}" , dico_spots_registered)
+
+    if args.dict_register_artefact:
+        from autofish_analysis.stitching import dico_register_artefact
+
+        dico_translation = np.load(f"{args.folder_of_rounds}{args.name_dico}_dico_translation.npy",
+                                   allow_pickle=True).item()
+
+        dico_spots_registered = np.load(f"{args.folder_of_rounds}{args.name_dico}_dico_spots_registered_{args.fixed_round_name}" + ".npy",
+                                        allow_pickle=True).item()
+
+
+        dico_spot_artefact = dico_register_artefact(
+                                dico_spots_registered,
+                               dico_translation,
+                               dico_bc_noise={'r6': 'artefact'},
+                               ref_round='r1',
+                               list_round=['r2', 'r8', 'r1', 'r9', 'r4', 'r10', 'r5', 'r3', 'r7', 'r6']
+                               )
+        np.save(f"{args.folder_of_rounds}{args.name_dico}_dico_spot_artefact_{args.fixed_round_name}_noise_r6" , dico_spots_registered)
 
     ########
     # Stitch only ref round images
@@ -392,43 +471,43 @@ if __name__ == '__main__':
         ###################################
         import imagej
         import scyjava
-        import utils.macro
-        from utils.macro import STITCHING_MACRO
+        from  autofish_analysis.utils import macro
+        #from utils.macro import STITCHING_MACRO
 
         scyjava.config.add_option('-Xmx40g')
         if "ij" not in vars():
             ij = imagej.init('sc.fiji:fiji')
 
         ### define the images to stitch and their position
-        img_pos_dico = {"img0": ['pos0', "pos1", "pos2"],
-                        "img1": ['pos6', "pos7", "pos8"]}
+        img_pos_dico = {"img0": ['pos0', "pos1", "pos2", 'pos3', 'pos4',
+                                 'pos5', "pos6", "pos7", 'pos8', 'pos8'],
+                       }
 
         import importlib
 
-        import stitching
+        from autofish_analysis import stitching
 
         importlib.reload(stitching)
-        from stitching import stich_with_image_J
-        from utils import macro
+        from autofish_analysis.stitching import stich_with_image_J
 
         stich_with_image_J(
             ij,
-            STITCHING_MACRO=utils.macro.STITCHING_MACRO,
+            STITCHING_MACRO=macro.STITCHING_MACRO,
             img_pos_dico=img_pos_dico,
             stitching_type="[Grid: snake-by-row]",
             order="[Left & Down]",
             grid_size_x=3,
-            grid_size_y=1,
-            tile_overlap=10,
+            grid_size_y=3,
+            tile_overlap=20,
             image_name="r1_pos{i}_ch0.tif",
             image_path=args.image_path_stiching,
             output_path=args.output_path_stiching)
 
-        from stitching import parse_txt_file
+        from autofish_analysis.stitching import parse_txt_file
 
         dico_centroid = {}
         for img_name in img_pos_dico:
-            path_txt = Path(args.output_path_stiching) / f"TileConfiguration_{img_name}.txt"
+            path_txt = Path(args.image_path_stiching) / f"TileConfiguration_{img_name}.txt"
             dico_stitch = parse_txt_file \
                 (path_txt=path_txt,
                  image_name_regex="_pos", )
@@ -454,8 +533,7 @@ if __name__ == '__main__':
             'r1': "gene1",
             'r5': "gene2",
         },
-        nb_tiles_x
-        nb_tiles_y
+
         dico_spots_registered_stitch_df = stich_dico_spots(
             dico_spots_registered=dico_spots_registered,
             dico_stitch_img=dict_stitch_img,

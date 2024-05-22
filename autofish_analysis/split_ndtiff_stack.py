@@ -29,6 +29,7 @@ def NDTiffStack_to_tiff(
                                ],
     folder_save = "/media/tom/Transcend/autofish_test/"
         ):
+
     """
     Args:
         path_parent: (Str) Path to main folder containing the round folder of NDTiffStack
@@ -97,9 +98,25 @@ def NDTiffStack_to_tiff(
             print(f'     Loading image: {file_list[i_file]}')
             img = imread(file_list[i_file])
             print(f'     Image shape: {img.shape} {path_images.name}')
-            if img.shape[-1] == 3:
-                img = img.transpose(2, 0, 1)  # Transpose to (z, x, y)
+            #if img.shape[-1] == 3:
+            #    img = img.transpose(2, 0, 1)  # Transpose to (z, x, y)
+            #img = img.transpose(1, 0, 2, 3)
+            #n_slices = img.shape[0]
+            if img.ndim == 4:
+                img = np.concatenate([img[i] for i in range(len(img))])
+            if img.ndim == 5:
+                to_concatenate = []
+                for pos in range(n_pos):
+                    for ch in range(n_c):
+                        to_concatenate.append(img[pos,ch])
+                img = np.concatenate(to_concatenate)
+
+            print(f'     Image shape after reshape: {img.shape} {path_images.name}')
+
             n_slices = img.shape[0]
+            assert n_slices == n_z * n_c * n_pos, "image dimension problem"
+            print("CHECK WITH FLORIAN WHY THE IMAGE SHAPE ARE NOT THE SAME")
+
 
             for i_pos in tqdm(range(0, n_pos)):
                 for i_c in range(0, n_c):
@@ -132,7 +149,7 @@ def NDTiffStack_to_tiff(
 
                         if i_file >= n_files:
                             raise Exception(
-                                ' We are having an issue here, should open another file to continue, but there are not files left.')
+                                'ERROR should open another file to continue, but there are not files left. \n check n_z and n_pos parameter')
                         print(f'     Loading image: {file_list[i_file]}')
                         img = imread(file_list[i_file])
                         print(f'     Image shape: {img.shape}')
